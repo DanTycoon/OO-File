@@ -11,6 +11,7 @@
 #include <cstring>
 
 #define flags(f) static_cast<File::Mode>(f)
+#define constlen(s) (sizeof(s) / sizeof(*s))
 
 // Test opening a file
 void test1(void)
@@ -28,7 +29,14 @@ void test2(void)
 // Test opening an invalid file
 void test3(void)
 {
-  File::File invalid("NotActuallyAFile");
+  try
+  {
+    File::File invalid("NotActuallyAFile");
+  }
+  catch( File::File_Exception e )
+  {
+    printf("Caught expected exception.\n%s", e.what());
+  }
 }
 
 // Test saving a file to another name
@@ -185,6 +193,105 @@ void test12(void)
   std::printf("String: %s", &string[3]);
 }
 
+// Test writing to a file.
+void test13(void)
+{
+  File::File f("testfile.txt", flags(File::MODE_WRITE | File::MODE_OVERWRITE));
+
+  // "This is what's in the first text file."
+
+  char string[] = "That";
+
+  for(unsigned i = 0; i < strlen(string); ++i)
+  {
+    f.PutChar(string[i]);
+  }
+
+  f.Close();
+
+  // "That is what's in the first text file."
+}
+
+// Test writing past the end of a file and buffer, with Append
+void test14(void)
+{
+  File::File f("test14.txt", flags(File::MODE_WRITE | File::MODE_APPEND));
+
+  // "Short"
+
+  char string [] = " file for testing increasing buffer size.";
+  const int len = strlen(string);
+
+  for(int i = 0 ; i < len; ++i)
+  {
+    f.PutChar(string[i]);
+  }
+
+  f.Close();
+
+  // "Short file for testing increasing buffer size."
+}
+
+// Test writing into a read-only file
+void test15(void)
+{
+  File::File f("test15.txt", flags(File::MODE_READ | File::MODE_OVERWRITE));
+
+  // "Short"
+
+  char string [] = "Test Failed\nYou shouldn't be able to see this.";
+  const int len = strlen(string);
+
+  try
+  {
+    for(int i = 0 ; i < len; ++i)
+    {
+      f.PutChar(string[i]);
+    }
+  }
+  catch ( File::File_Exception e )
+  {
+    printf("Caught expected exception.\n%s", e.what());
+  }
+}
+
+// Test writing into a read-only file without exception throwing.
+void test16(void)
+{
+  File::File f("test15.txt", flags(File::MODE_READ | File::MODE_OVERWRITE));
+
+  // "Short"
+
+  char string [] = "Test Failed\nYou shouldn't be able to see this.";
+  const int len = strlen(string);
+
+
+  for(int i = 0 ; i < len; ++i)
+  {
+    f.PutChar(string[i], true);
+  }
+
+  f.Close();
+
+  // "Short"
+}
+
+// Test writing into an empty file.
+void test17(void)
+{
+  File::File f("test17.txt", flags(File::MODE_WRITE | File::MODE_APPEND));
+
+  char string[] = "Test Passed.";
+  const int len = strlen(string);
+
+  for(int i = 0; i < len; ++i)
+  {
+    f.PutChar(string[i], true);
+  }
+
+  f.Close();
+}
+
 void (*tests[])(void) = {
   test1,
   test2,
@@ -197,7 +304,13 @@ void (*tests[])(void) = {
   test9,
   test10,
   test11,
-  test12
+  test12,
+  test13,
+  test14,
+  test15,
+  test16,
+  test17,
+
 };
 
 int main(int argc, char** argv)

@@ -120,10 +120,10 @@ namespace File
     /* Gets the next character in the file. Optionally, can skip
      * whitespace while looking for the next character.
      *
-     * ignoreWhitespace - Whether or not to get the next non-whitespace
+     * ignoreWhitespace: Whether or not to get the next non-whitespace
      *                    character.
      *
-     * Returns - The next character in the file.
+     * Returns: The next character in the file.
      */
     char GetChar(bool ignoreWhitespace = false);
 
@@ -146,6 +146,39 @@ namespace File
      */
     unsigned GetString(char* outputString, unsigned maxLength, char terminator = '\n');
 
+    /* Puts a character onto the file buffer.
+     *
+     * character: What to put onto the buffer.
+     * ignoreErrors: True - Do nothing when an error occurs. (e.g. writing protected memory)
+     *               False - Throw when an error occurs.
+     *
+     * Throws: E_PROTECTED   - Attempting to write into protected area of the file.
+     *         E_PROTECTED   - Attempting to write into a read-only file.
+     *         E_OUTOFMEMORY - New failed while trying to resize internal buffer.
+     * Status after Throw: No change.
+     */
+    void PutChar(char character, bool ignoreErrors = false) throw (File_Exception);
+
+    /* Increases the internal buffer size to a desired amount.
+     * If lower than the current buffer size, does nothing.
+     *
+     * desiredSize: How large the internal buffer should be.
+     * Throws: E_OUTOFMEMORY - New failed while trying to resize internal buffer.
+     * Status after Throw: No change.
+     */
+    void Resize(unsigned desiredSize) throw (File_Exception);
+
+    /* Put a null-terminated string onto the file buffer.
+     *
+     * string: The string to put onto the buffer.
+     * ignoreErrors: True - Do nothing when an error occurs. (e.g. writing protected memory)
+     *               False - Throw when an error occurs.
+     *
+     * Throws: E_PROTECTED   - Attempting to write into protected area of the file.
+     *         E_PROTECTED   - Attempting to write into a read-only file.
+     *         E_OUTOFMEMORY - New failed while trying to resize internal buffer.
+     * Status after Throw: No change.
+     */
   private:
     File();
 

@@ -329,4 +329,67 @@ namespace File
     // Return how many bytes we read in. (+1 for Null terminator)
     return currentPos_ - stringStart + 1;
   }
+
+  void File::PutChar(char character, bool ignoreErrors)
+  {
+    // If we're in read-only mode, do nothing.
+    if(mode_ & MODE_READ)
+    {
+      if(ignoreErrors) // Don't throw
+        return;
+
+      throw File_Exception(E_PROTECTED);
+    };
+
+    // Make sure we're not writing into protected memory.
+    if(currentPos_ < protectEnd_)
+    {
+      if(ignoreErrors) // Don't throw
+        return;
+
+      throw File_Exception(E_PROTECTED);
+    }
+
+    // Are we writing to the end of the file?
+    if(currentPos_ == fileSize_)
+    {
+      // Make sure there's enough space in the buffer
+      if(++fileSize_ > bufferSize_) // Increase file size (write at end)
+        Resize(static_cast<unsigned>((fileSize_) * Utils::GrowthSize));
+    }
+
+    // Write to the buffer
+    file_[currentPos_++] = character;
+  }
+
+  void File::Resize(unsigned desiredSize)
+  {
+    // Make sure it's a valid size
+    if(desiredSize <= bufferSize_)
+      return;
+
+    // Attempt to allocate new memory
+    char* newBuffer;
+
+    try
+    {
+      newBuffer = new char[desiredSize];
+    }
+    catch( std::bad_alloc )
+    {
+      throw File_Exception(E_OUTOFMEMORY);
+    }
+
+    // Copy the buffer over
+    // Can't use fileSize_ since PutChar makes it larger than bufferSize_,
+    // an out-of-bounds memory read.
+    memcpy(newBuffer, file_, bufferSize_);
+
+    // Free memory
+    delete [] file_;
+
+    // Set data
+    file_ = newBuffer;
+    bufferSize_ = desiredSize;
+  }
 }

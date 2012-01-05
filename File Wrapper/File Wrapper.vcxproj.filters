@@ -49,5 +49,17 @@
     <None Include="short.txt">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="test14.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="test15.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="test16.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="test17.txt">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

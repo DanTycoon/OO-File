@@ -15,15 +15,17 @@ namespace File
     E_OUTOFMEMORY,
     E_FILETOOLARGE,
     E_BADFLAGS,
+    E_PROTECTED,
   };
 
   static const char* ErrorStrings[] = {
-    "Unspecified Error",             // E_UNSPECIFIED
-    0,                               // E_CUSTOMSTRING
-    "fopen returned an error.",      // E_FOPENERROR
-    "Out of system memory.",         // E_OUTOFMEMORY
-    "File is larger than int max.",  // E_FILETOOLARGE
-    "Inappropriate flags specified.",// E_BADFLAGS
+    "Unspecified Error",                     // E_UNSPECIFIED
+    0,                                       // E_CUSTOMSTRING
+    "fopen returned an error.",              // E_FOPENERROR
+    "Out of system memory.",                 // E_OUTOFMEMORY
+    "File is larger than int max.",          // E_FILETOOLARGE
+    "Inappropriate flags specified.",        // E_BADFLAGS
+    "Attempt to write into protected file."  // E_PROTECTED
   };
 }
 
