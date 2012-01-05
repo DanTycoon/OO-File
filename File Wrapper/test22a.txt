@@ -1,0 +1,2 @@
+Text file b contents.
+Text file a contents.

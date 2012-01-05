@@ -163,14 +163,14 @@ namespace File
       protectEnd_ = currentPos_;
   }
 
-  void File::Close()
+  void File::Close(bool save)
   {
     // If we're not open, don't do anything.
     if(open_ == false)
       return;
 
     // If we're in write mode, write out the file.
-    if(mode_ & MODE_WRITE)
+    if(save && (mode_ & MODE_WRITE))
       WriteFile(filename_);
 
     // Free the memory
@@ -391,5 +391,41 @@ namespace File
     // Set data
     file_ = newBuffer;
     bufferSize_ = desiredSize;
+  }
+
+  void File::PutString(const char* string, bool ignoreErrors)
+  {
+    // Just pass through each caracter to PutChar.
+    const unsigned len = std::strlen(string);
+    
+    for(unsigned i = 0; i < len; ++i)
+    {
+      PutChar(string[i], ignoreErrors);
+    }
+  }
+
+  unsigned File::Read(char* output, unsigned maxLength)
+  {
+    // Make sure we don't go over the end of the file
+    if(currentPos_ + maxLength > fileSize_)
+      maxLength = fileSize_ - currentPos_;
+
+    // Copy the bytes over and move the internal pointer
+    std::memcpy(output, &file_[currentPos_], maxLength);
+    currentPos_ += maxLength;
+
+    // Return the number of bytes read.
+    return maxLength;
+  }
+
+  void File::Reopen(void)
+  {
+    // Keep track of our filename
+    char* filename = Utils::CopyString(filename_);
+
+    Close(false);
+    Open(filename, MODE_SAME);
+
+    delete [] filename;
   }
 }

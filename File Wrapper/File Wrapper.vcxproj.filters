@@ -61,5 +61,11 @@
     <None Include="test17.txt">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="test22a.txt">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="test22b.txt">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>

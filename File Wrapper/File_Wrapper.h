@@ -94,10 +94,13 @@ namespace File
     /* Writes out changes to the file and closes the file.
      * File will be re-created if it has since been deleted.
      *
+     * save: True - Saves the file out to disk.
+     *       False - Closes the file, but does not write it out.
+     *
      * Throws: E_FOPENERROR - fopen didn't return a valid file.
      * Status after Throw: No change. File is not closed.
      */
-    void Close() throw(File_Exception);
+    void Close(bool save = true) throw(File_Exception);
 
     /* Writes out the current status of the buffer to a file.
      *
@@ -170,7 +173,7 @@ namespace File
 
     /* Put a null-terminated string onto the file buffer.
      *
-     * string: The string to put onto the buffer.
+     * string: The null-terminated string to put onto the buffer.
      * ignoreErrors: True - Do nothing when an error occurs. (e.g. writing protected memory)
      *               False - Throw when an error occurs.
      *
@@ -179,6 +182,23 @@ namespace File
      *         E_OUTOFMEMORY - New failed while trying to resize internal buffer.
      * Status after Throw: No change.
      */
+    void PutString(const char* string, bool ignoreErrors = false) throw (File_Exception);
+    
+    /* Get a certain amount of bytes from the buffer. Does not null-terminate.
+     *
+     * output: Where to store the string.
+     * maxLength: The maximum length that should be read.
+     *
+     * Returns: The number of bytes read.
+     */
+    unsigned Read(char* output, unsigned maxLength);
+
+    /* Re-opens the file. Does not write out the buffer before closing.
+     * If you want the file to be written out, call "SaveFile"
+     *
+     * Throws: See: Open, Close
+     */
+    void Reopen(void) throw (File_Exception);
   private:
     File();
 

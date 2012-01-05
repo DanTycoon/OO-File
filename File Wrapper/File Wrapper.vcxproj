@@ -84,6 +84,8 @@
     <None Include="test15.txt" />
     <None Include="test16.txt" />
     <None Include="test17.txt" />
+    <None Include="test22a.txt" />
+    <None Include="test22b.txt" />
     <None Include="testfile.txt" />
     <None Include="testfile2.txt" />
     <None Include="testout.txt" />

@@ -132,7 +132,7 @@ void test11(void)
   // Hello
   // 5 characters. + 1 null terminator = 6 characters.
 
-  // Set up borders around the memory to check for leaking
+  // Set up borders around the memory to check for overruns
   unsigned char string[12];
 
   std::memset(&string[0], 0xFF, 3);
@@ -167,7 +167,7 @@ void test12(void)
   // Hello
   // 5 characters. + 1 null terminator = 6 characters.
 
-  // Set up borders around the memory to check for leaking
+  // Set up borders around the memory to check for overruns
   unsigned char string[11];
 
   std::memset(&string[0], 0xFF, 3);
@@ -292,6 +292,127 @@ void test17(void)
   f.Close();
 }
 
+// Test Read
+void test18(void)
+{
+  File::File f("testfile.txt", flags(File::MODE_READ | File::MODE_PROTECT));
+
+  char string[100] = {0};
+  unsigned bytesRead = f.Read(string, 5);
+
+  printf("String was: \"%s\" (%d bytes)\n", string, bytesRead);
+}
+
+// Test Read with too many bytes
+void test19(void)
+{
+  File::File f("testFile.txt", flags(File::MODE_READ | File::MODE_PROTECT));
+
+  char string[100] = {0};
+  unsigned bytesRead = f.Read(string, 100);
+
+  printf("String was: \"%s\" (%d bytes)\n", string, bytesRead);
+}
+
+// Test Read with JUST enough bytes.
+void test20(void)
+{
+  File::File f("short.txt", flags(File::MODE_READ | File::MODE_PROTECT));
+
+  // Contents of short.txt:
+  // Hello(no newline or null)
+
+  // Set up borders around the memory to check for overruns
+  unsigned char string[11];
+
+  std::memset(&string[0], 0xFF, 3);
+  std::memset(&string[8], 0xEE, 3);
+  std::memset(&string[3], 0x00, 5);
+
+  std::printf("Memory before Read:\n");
+  for(unsigned i = 0; i < sizeof(string) / sizeof(*string); ++i)
+  {
+    // 0x required since printf doesn't put '0x' before 0 values with #
+    std::printf("0x%.2x ", string[i]);
+  }
+  std::printf("\n\n");
+
+  unsigned bytesRead = f.Read(reinterpret_cast<char*>(&string[3]), 5);
+
+  std::printf("Memory after Read:\n");
+  for(unsigned i = 0; i < sizeof(string) / sizeof(*string); ++i)
+  {
+    std::printf("0x%.2x ", string[i]);
+  }
+  std::printf("\n");
+}
+
+// Test Read with just UNDER enough bytes.
+void test21(void)
+{
+  File::File f("short.txt", flags(File::MODE_READ | File::MODE_PROTECT));
+
+  // Contents of short.txt:
+  // Hello(no newline or null)
+
+  // Set up borders around the memory to check for overruns
+  unsigned char string[10];
+
+  std::memset(&string[0], 0xFF, 3);
+  std::memset(&string[7], 0xEE, 3);
+  std::memset(&string[3], 0x00, 4);
+
+  std::printf("Memory before Read:\n");
+  for(unsigned i = 0; i < sizeof(string) / sizeof(*string); ++i)
+  {
+    // 0x required since printf doesn't put '0x' before 0 values with #
+    std::printf("0x%.2x ", string[i]);
+  }
+  std::printf("\n\n");
+
+  unsigned bytesRead = f.Read(reinterpret_cast<char*>(&string[3]), 4);
+
+  std::printf("Memory after Read:\n");
+  for(unsigned i = 0; i < sizeof(string) / sizeof(*string); ++i)
+  {
+    std::printf("0x%.2x ", string[i]);
+  }
+  std::printf("\n");
+}
+
+// Test Reopen
+void test22(void)
+{
+  File::File a("test22a.txt", flags(File::MODE_READ | File::MODE_PROTECT));
+  File::File b("test22b.txt", flags(File::MODE_READ | File::MODE_PROTECT));
+  File::File ModA("test22a.txt", flags(File::MODE_WRITE | File::MODE_CLEAR));
+  // ModA clear's file A
+
+  char stringA[50] = {0};
+  char stringB[50] = {0};
+
+  a.Read(stringA, 50);
+  b.Read(stringB, 50);
+
+  printf("File A contained: \"%s\"\n", stringA);
+  printf("File B contained: \"%s\"\n", stringB);
+
+  // Put string B before A in the A file.
+  ModA.PutString(stringB);
+  ModA.PutChar('\n');
+  ModA.PutString(stringA);
+
+  ModA.Close();
+  b.Close();
+
+  a.Reopen();
+  char finalString[100] = {0};
+  a.Read(finalString, 100);
+
+  printf("File A now contains:\n%s\n", finalString);
+  a.Close();
+}
+
 void (*tests[])(void) = {
   test1,
   test2,
@@ -310,7 +431,11 @@ void (*tests[])(void) = {
   test15,
   test16,
   test17,
-
+  test18,
+  test19,
+  test20,
+  test21,
+  test22,
 };
 
 int main(int argc, char** argv)
