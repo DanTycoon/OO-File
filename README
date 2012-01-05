@@ -1,0 +1,27 @@
+Object Oriented File Wrapper for C++
+
+All the header files should be documented pretty well, so if you read those,
+you'll be able to figure out how to use the File class. The rest of this is
+just me talking about the project.
+
+The aim of this project is to create... well you get the idea. I was getting
+fed up with the C-style stdio.h FILE* nonsense, so I thought it would be a good
+learning experience to try and see if there wasn't some way to clean it up a
+bit, while adding features I thought might be useful.
+
+The way the File class is implemented is very simple. It's essentially just an
+internal character buffer that gets filled when a file is opened. The max size
+of a file that I can open is unfortnuately 4 GB, but since this project doesn't
+aim to be a one-stop-shop for ALL C++ file management, I figure that's good
+enough. At the very least, it's good enough for me.
+
+I'm working towards adding all the fWhatever functions to the class so that it
+is able to be used just like a FILE*.
+
+Why not just use fstream? Because I wanted to try to learn how they were
+implemented through trial and error, and because I find streams tedious. At any
+rate, I'm far more familiar with the C-style functions than I am with the
+stream functions.
+
+Anyways, that's the aim of the project. Hopefully you can learn as much as I am
+from it.
