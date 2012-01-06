@@ -13,6 +13,12 @@
 #define flags(f) static_cast<File::Mode>(f)
 #define constlen(s) (sizeof(s) / sizeof(*s))
 
+class Bad_Result
+{
+};
+
+#define ErrorIf(x) do{if(x)throw Bad_Result();}while(0)
+
 // Test opening a file
 void test1(void)
 {
@@ -36,7 +42,10 @@ void test3(void)
   catch( File::File_Exception e )
   {
     printf("Caught expected exception.\n%s\n", e.what());
+    return;
   }
+
+  ErrorIf(true);
 }
 
 // Test saving a file to another name
@@ -52,12 +61,18 @@ void test5(void)
   File::File f("testfile.txt", flags(File::MODE_READ));
 
   // This is what's in the first text file.
+  char string[100] = {0};
+  unsigned i = 0;
+
   while(!f.EndOfFile())
   {
     char nextChar = f.GetChar();
     printf("%c", nextChar);
+    string[i++] = nextChar;
   }
-  printf("\nDone!");
+  printf("\nDone!\n");
+
+  ErrorIf(std::strcmp("This is what's in the first text file.", string) != 0);
 }
 
 // Test GetChar with ignoring white space
@@ -66,12 +81,18 @@ void test6(void)
   File::File f("testfile.txt", flags(File::MODE_READ));
 
   // Thisiswhat'sinthefirsttextfile.
+  char string[100] = {0};
+  unsigned i = 0;
+
   while(!f.EndOfFile())
   {
     char nextChar = f.GetChar(true);
     printf("%c", nextChar);
+    string[i++] = nextChar;
   }
-  printf("\nDone!");
+  printf("\nDone!\n");
+
+  ErrorIf(std::strcmp("Thisiswhat'sinthefirsttextfile.", string) != 0);
 }
 
 // Test GetChar after EOF is reached
@@ -85,6 +106,8 @@ void test7(void)
   int nextChar = static_cast<int>(f.GetChar());
 
   std::printf("One past the last character is value %d.\n", nextChar);
+
+  ErrorIf(nextChar != 0);
 }
 
 // Test GetString
@@ -97,6 +120,8 @@ void test8(void)
   unsigned length = f.GetString(string, sizeof(string) / sizeof(*string));
 
   std::printf("String was: \"%s\" (Length of %d)\n", string, length);
+
+  ErrorIf(std::strcmp("This is what's in the first text file.", string) != 0 || length != 39);
 }
 
 // Test GetString with a different terminator
@@ -109,6 +134,8 @@ void test9(void)
   unsigned length = f.GetString(string, sizeof(string) / sizeof(*string), ' ');
 
   std::printf("String was: \"%s\" (Length of %d)\n", string, length);
+
+  ErrorIf(std::strcmp("This", string) != 0 || length != 5);
 }
 
 // Test GetString with not enough space in buffer
@@ -121,6 +148,8 @@ void test10(void)
   unsigned length = f.GetString(string, 10);
 
   std::printf("String was: \"%s\" (Length of %d)\n", string, length);
+
+  ErrorIf(std::strcmp("This is w", string) != 0 || length != 10);
 }
 
 // Test GetString with JUST enough memory
@@ -156,6 +185,9 @@ void test11(void)
   }
   std::printf("\n");
   std::printf("String: %s", &string[3]);
+
+  unsigned char expectedString[12] = {0xFF, 0xFF, 0xFF, 'H', 'e', 'l', 'l', 'o', '\0', 0xEE, 0xEE, 0xEE};
+  ErrorIf(std::memcmp(expectedString, string, 12) != 0);
 }
 
 // Test GetString with just UNDER enough memory
@@ -191,12 +223,15 @@ void test12(void)
   }
   std::printf("\n");
   std::printf("String: %s", &string[3]);
+
+  unsigned char expectedString[12] = {0xFF, 0xFF, 0xFF, 'H', 'e', 'l', 'l', '\0', 0xEE, 0xEE, 0xEE};
+  ErrorIf(std::memcmp(expectedString, string, 11) != 0);
 }
 
 // Test writing to a file.
 void test13(void)
 {
-  File::File f("testfile.txt", flags(File::MODE_WRITE | File::MODE_OVERWRITE));
+  File::File f("test13.txt", flags(File::MODE_WRITE | File::MODE_OVERWRITE));
 
   // "This is what's in the first text file."
 
@@ -210,6 +245,10 @@ void test13(void)
   f.Close();
 
   // "That is what's in the first text file."
+  File::File check("test13.txt", flags(File::MODE_READ | File::MODE_TEXT));
+  char firstWord[5];
+  check.GetString(firstWord, 5, ' ');
+  ErrorIf(std::strcmp("That", firstWord));
 }
 
 // Test writing past the end of a file and buffer, with Append
@@ -230,6 +269,10 @@ void test14(void)
   f.Close();
 
   // "Short file for testing increasing buffer size."
+  File::File check("test14.txt", flags(File::MODE_READ | File::MODE_TEXT));
+  char testString[100];
+  check.GetString(testString, 100);
+  ErrorIf(std::strcmp("Short file for testing increasing buffer size.", testString));
 }
 
 // Test writing into a read-only file
@@ -252,15 +295,18 @@ void test15(void)
   catch ( File::File_Exception e )
   {
     printf("Caught expected exception.\n%s\n", e.what());
+    return;
   }
+
+  ErrorIf(true);
 }
 
 // Test writing into a read-only file without exception throwing.
 void test16(void)
 {
-  File::File f("test15.txt", flags(File::MODE_READ | File::MODE_OVERWRITE));
+  File::File f("test16.txt", flags(File::MODE_READ | File::MODE_OVERWRITE));
 
-  // "Short"
+  // "Test Passed"
 
   char string [] = "Test Failed\nYou shouldn't be able to see this.";
   const int len = strlen(string);
@@ -273,7 +319,12 @@ void test16(void)
 
   f.Close();
 
-  // "Short"
+  // "Test Passed"
+
+  File::File check("test15.txt", flags(File::MODE_READ));
+  char testString[100];
+  check.GetString(testString, 100);
+  ErrorIf(std::strcmp("Test Passed", testString) != 0);
 }
 
 // Test writing into an empty file.
@@ -290,6 +341,11 @@ void test17(void)
   }
 
   f.Close();
+
+  File::File check("test17.txt", flags(File::MODE_READ | File::MODE_TEXT));
+  char testString[100];
+  check.GetString(testString, 100);
+  ErrorIf(std::strcmp("Test Passed.", testString) != 0);
 }
 
 // Test Read
@@ -302,6 +358,9 @@ void test18(void)
 
   printf("String was: \"%s\" (%d bytes)\n", string, bytesRead);
   // "This " No Null. 5 Bytes
+
+  char expected[5] = {'T', 'h', 'i', 's', ' '};
+  ErrorIf(std::memcmp(expected, string, 5) || bytesRead != 5);
 }
 
 // Test Read with too many bytes
@@ -314,6 +373,9 @@ void test19(void)
 
   printf("String was: \"%s\" (%d bytes)\n", string, bytesRead);
   // 38 Bytes
+
+  char expected[] = "This is what's in the first text file.";
+  ErrorIf(std::memcmp(expected, string, sizeof(expected) / sizeof(*expected) - 1) || bytesRead != 38);
 }
 
 // Test Read with JUST enough bytes.
@@ -347,6 +409,9 @@ void test20(void)
     std::printf("0x%.2x ", string[i]);
   }
   std::printf("\n");
+
+  unsigned char expectedString[11] = {0xFF, 0xFF, 0xFF, 'H', 'e', 'l', 'l', 'o', 0xEE, 0xEE, 0xEE};
+  ErrorIf(std::memcmp(expectedString, string, 11) != 0);
 }
 
 // Test Read with just UNDER enough bytes.
@@ -380,6 +445,9 @@ void test21(void)
     std::printf("0x%.2x ", string[i]);
   }
   std::printf("\n");
+
+  unsigned char expectedString[10] = {0xFF, 0xFF, 0xFF, 'H', 'e', 'l', 'l', 0xEE, 0xEE, 0xEE};
+  ErrorIf(std::memcmp(expectedString, string, 11) != 0);
 }
 
 // Test Reopen
@@ -413,6 +481,8 @@ void test22(void)
 
   printf("File A now contains:\n%s\n", finalString);
   a.Close();
+
+  ErrorIf(std::strcmp("Text file b contents.\nText file a contents.", finalString) != 0);
 }
 
 // Test GetPos/SetPos
@@ -425,21 +495,32 @@ void test23(void)
   f.GetString(string, 100);
   printf("First string was: \"%s\"\n", string);
 
+  ErrorIf(std::strcmp(string, "Line 1") != 0);
+
   unsigned secondBegin = f.GetPos();
 
   f.GetString(string, 100);
   printf("Second string was: \"%s\"\n", string);
+
+  ErrorIf(std::strcmp(string, "Line 2") != 0);
 
   f.SetPos(secondBegin);
 
   f.GetString(string, 100);
   printf("Second string again was: \"%s\"\n", string);
 
+  ErrorIf(std::strcmp(string, "Line 2") != 0);
+
   f.GetString(string, 100);
   printf("Third string is: \"%s\"\n", string);
 
+  ErrorIf(std::strcmp(string, "Line 3") != 0);
+
   if(!f.EndOfFile())
+  {
     printf("NOT AT END OF FILE!\n");
+    ErrorIf(true);
+  }
 
 }
 
@@ -451,8 +532,14 @@ void test24(void)
   // Write a string to the buffer
   const char string[] = "This is a line of text";
   f.Write(&string[0], sizeof(string) / sizeof(*string), false);
+  f.Close();
 
   // Contents: "This is a line of text.\0"
+
+  File::File check("test24.txt", flags(File::MODE_READ | File::MODE_TEXT));
+  char checkString[100];
+  check.GetString(checkString, 100);
+  ErrorIf(std::strcmp(string, checkString) != 0);
 }
 
 // Test Write overload
@@ -462,10 +549,20 @@ void test25(void)
 
   const int arr[] = { 1, 2, 0x6C6C6548, 0x00002E6F };
   f.Write(&arr[0], sizeof(*arr), sizeof(arr) / sizeof(*arr), false);
+  f.Close();
 
   // Result:
   // 01 00 00 00  02 00 00 00  48 65 6c 6c 6f 2e 00 00   ........Hello...
   //                                                    Actual Period ^
+
+  File::File check("test25.txt", flags(File::MODE_READ | File::MODE_BINARY));
+  char checkString[] = { 0x01, 0x00, 0x00, 0x00,  0x02, 0x00, 0x00, 0x00,
+                         0x48, 0x65, 0x6c, 0x6c,  0x6f, 0x2e, 0x00, 0x00 };
+  char fileString[100];
+  unsigned bytesRead = check.Read(fileString, 100);
+
+  ErrorIf(std::memcmp(checkString, fileString, sizeof(checkString) / sizeof(*checkString)) != 0 ||
+    bytesRead != sizeof(checkString) / sizeof(*checkString));
 }
 
 void (*tests[])(void) = {
@@ -496,8 +593,34 @@ void (*tests[])(void) = {
   test25
 };
 
+void WriteToFile(const char* filename, const char* data)
+{
+  // No error checking. BAD!
+  std::FILE* file = std::fopen(filename, "wt");
+  std::fprintf(file, "%s", data);
+  std::fclose(file);
+}
+
+void SetupFiles(void)
+{
+  WriteToFile("test13.txt", "This is what's in the first text file.");
+  WriteToFile("test14.txt", "Short");
+  WriteToFile("test15.txt", "Test Passed");
+  WriteToFile("test16.txt", "Test Passed");
+  WriteToFile("test17.txt", "");
+  WriteToFile("test22a.txt", "Text file a contents.");
+  WriteToFile("test22b.txt", "Text file b contents.");
+  WriteToFile("test23.txt", "Line 1\nLine 2\nLine 3");
+  WriteToFile("test24.txt", "");
+  WriteToFile("test25.txt", "");
+}
+
 int main(int argc, char** argv)
 {
+  unsigned currentTest;
+
+  SetupFiles();
+
   try{
     if(argc > 1)
     {
@@ -505,12 +628,16 @@ int main(int argc, char** argv)
 
       // If the number given is greater than the number of tests we have, run all of them.
       if(which <= sizeof(tests) / sizeof(*tests))
+      {
+        currentTest = which-1;
         tests[which-1]();
+      }
       else
       {
         for(unsigned i = 0; i < sizeof(tests) / sizeof(*tests); ++i)
         {
           std::printf("-- BEGIN TEST %02d --------------------------\n", i + 1);
+          currentTest = i;
           tests[i]();
           std::printf("-- END TEST %02d ----------------------------\n\n", i + 1);
         }
@@ -519,12 +646,27 @@ int main(int argc, char** argv)
     else
     {
       // Run the last test
+      currentTest = (sizeof(tests) / sizeof(*tests)) - 1;
       tests[(sizeof(tests) / sizeof(*tests)) - 1]();
     }
   }
   catch (File::File_Exception e)
   {
     std::printf("Exception occurred!\n%s", e.what());
+
+    // Breakpoint here.
+    // (Manually putting a breakpoint here is faster than doing
+    //  _asm int 3 or _CrtDbgBreak() in Visual Studio 11)
+    int i = 0;
+  }
+  catch (Bad_Result)
+  {
+    std::printf("********* TEST %d FAILED *********", currentTest + 1);
+
+    // Breakpoint here.
+    // (Manually putting a breakpoint here is faster than doing
+    //  _asm int 3 or _CrtDbgBreak() in Visual Studio 11)
+    int i = 0;
   }
 
   _CrtDumpMemoryLeaks();

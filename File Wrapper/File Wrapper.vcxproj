@@ -80,6 +80,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="short.txt" />
+    <None Include="test13.txt" />
     <None Include="test14.txt" />
     <None Include="test15.txt" />
     <None Include="test16.txt" />
