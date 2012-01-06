@@ -86,11 +86,11 @@ namespace File
      * Throws: E_OUTOFMEMORY - new had an eeror while copying the filename/buffer.
      * Status after Throw: File is closed.
      */
-    File& operator=(const File& rhs);
+    File& operator=(const File& rhs) throw(File_Exception);
 
     /* Automatically calls Close on the file.
      */
-    ~File();
+    ~File() throw();
 
     /* Opens a file with a specified filename in the given mode. If
      * there's a file already open, it will be closed first.
@@ -132,7 +132,7 @@ namespace File
      * Returns: True - The EOF has been reached. There is nothing left to read.
      *          False - EOF has not yet been reached.
      */
-    bool EndOfFile() const;
+    bool EndOfFile() const throw();
 
     /* Gets the next character in the file. Optionally, can skip
      * whitespace while looking for the next character.
@@ -142,13 +142,13 @@ namespace File
      *
      * Returns: The next character in the file.
      */
-    char GetChar(bool ignoreWhitespace = false);
+    char GetChar(bool ignoreWhitespace = false) throw();
 
     /* Gets the current position of the internal buffer pointer
      *
      * Returns: Buffer pointer position.
      */
-    unsigned GetPos() const;
+    unsigned GetPos() const throw();
 
     /* Gets the next string in the file. Reads from the next non-whitespace
      * character inside the buffer, until the next terminator character,
@@ -161,7 +161,7 @@ namespace File
      *
      * Returns: The number of characters read. Includes null terminator.
      */
-    unsigned GetString(char* outputString, unsigned maxLength, char terminator = '\n');
+    unsigned GetString(char* outputString, unsigned maxLength, char terminator = '\n') throw();
 
     /* Puts a character onto the file buffer.
      *
@@ -205,7 +205,7 @@ namespace File
      *
      * Returns: The number of bytes read.
      */
-    unsigned Read(char* output, unsigned maxLength);
+    unsigned Read(char* output, unsigned maxLength) throw();
 
     /* Re-opens the file. Does not write out the buffer before closing.
      * If you want the file to be written out, call "SaveFile"
@@ -235,7 +235,23 @@ namespace File
      *         E_INVALIDPOSITION - Invalid origin specified.
      * Status after Throw: No change.
      */
-    void Seek(int offset, Seek_Origin origin);
+    void Seek(int offset, Seek_Origin origin) throw(File_Exception);
+
+    /* Writes data to the file buffer.
+     * 
+     * data: Pointer to the beginning of the data to write.
+     * ignoreErrors: Whether or not to throw if writing to protected data.
+     *
+     * numBytes: How many bytes to write to the buffer.
+     * ----------------------------------------------------
+     * objectSize: How large each object to be written is.
+     * numObjects: How many objects to write to the buffer.
+     *
+     * Throws: E_OUTOFMEMORY - new had an error allocating extra memory.
+     *         E_PROTECTED   - Attempt to write to protected file area.
+     */
+    void Write(const char* data, unsigned numBytes, bool ignoreErrors = false) throw(File_Exception);
+    void Write(const char* data, unsigned objectSize, unsigned numObjects, bool ignoreErrors = false) throw(File_Exception);
   private:
     File();
 

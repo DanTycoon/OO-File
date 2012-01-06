@@ -441,6 +441,27 @@ void test23(void)
 
 }
 
+// Test Write
+void test24(void)
+{
+  File::File f("test24.txt", flags(File::MODE_WRITE | File::MODE_CREATE | File::MODE_TEXT | File::MODE_CLEAR));
+
+  // Write a string to the buffer
+  const char string[] = "This is a line of text";
+  f.Write(&string[0], sizeof(string) / sizeof(*string), false);
+
+  // Contents: "This is a line of text.\0"
+}
+
+// Test Write overload
+void test25(void)
+{
+  File::File f("test25.txt", flags(File::MODE_WRITE | File::MODE_TEXT | File::MODE_CLEAR | File::MODE_CREATE));
+
+  const char arr[] = { 'a', 'b', 'c' };
+  f.Write(&arr[0], sizeof(*arr), sizeof(arr) / sizeof(*arr), false);
+}
+
 void (*tests[])(void) = {
   test1,
   test2,
@@ -465,6 +486,8 @@ void (*tests[])(void) = {
   test21,
   test22,
   test23,
+  test24,
+  test25
 };
 
 int main(int argc, char** argv)

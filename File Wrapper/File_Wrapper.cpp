@@ -263,8 +263,11 @@ namespace File
 
   void File::WriteFile(const char* filename) const
   {
+    // Determine the translation mode
+    char mode[3] = {'w', (mode_ & MODE_TEXT ? 't' : 'b'), '\0'};
+
     // Open the file for writing
-    std::FILE* file = std::fopen(filename, "w");
+    std::FILE* file = std::fopen(filename, mode);
 
     if(file == NULL)
       throw File_Exception(E_FOPENERROR);
@@ -470,5 +473,20 @@ namespace File
       throw File_Exception(E_INVALIDPOSITION);
 
     currentPos_ = start;
+  }
+
+  void File::Write(const char* data, unsigned numBytes, bool ignoreErrors)
+  {
+    // There already exists a function that writes data to the file buffer.
+    for(unsigned i = 0; i < numBytes; ++i)
+    {
+      PutChar(data[i], ignoreErrors);
+    }
+  }
+
+  void File::Write(const char* data, unsigned objectSize, unsigned numObjects, bool ignoreErrors)
+  {
+    // Do the math and call the other Write function.
+    Write(data, objectSize * numObjects, ignoreErrors);
   }
 }
