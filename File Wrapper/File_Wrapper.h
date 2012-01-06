@@ -39,6 +39,20 @@ namespace File
     MODE_SAME =      0x80000000, // Open another file in the same way the previous file was opened.
   };
 
+  // Used for Seek function. Where offset starts from
+  enum Seek_Origin
+  {
+    // The C values
+    SEEK_SET,
+    SEEK_CUR,
+    SEEK_END,
+
+    // Some aliases
+    SEEK_BEGIN =      SEEK_SET,
+    SEEK_CURRENT =    SEEK_CUR,
+    SEEK_CURRENTPOS = SEEK_CUR,
+  };
+
   // The file class to be used when dealing with files.
   class File
   {
@@ -197,8 +211,31 @@ namespace File
      * If you want the file to be written out, call "SaveFile"
      *
      * Throws: See: Open, Close
+     * Status after Throw: File is closed.
      */
     void Reopen(void) throw (File_Exception);
+
+    /* Sets the internal file pointer to a value which is retrieved
+     * by GetPos.
+     *
+     * position: The value to move the pointer to.
+     *
+     * Throws: E_INVALIDPOSITION - Invalid position specified.
+     * Status after Throw: No change.
+     */
+    void SetPos(unsigned position) throw(File_Exception);
+
+    /* Moves the internal file pointer to a specified offset. Note that
+     * when using SEEK_END, you must specify a negative offset.
+     * 
+     * offset: The number of bytes ahead or behind the origin.
+     * origin: Position in the file buffer where offset starts.
+     *
+     * Throws: E_INVALIDPOSITION - Invalid position specified.
+     *         E_INVALIDPOSITION - Invalid origin specified.
+     * Status after Throw: No change.
+     */
+    void Seek(int offset, Seek_Origin origin);
   private:
     File();
 

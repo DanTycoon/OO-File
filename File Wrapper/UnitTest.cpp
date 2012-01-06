@@ -386,7 +386,7 @@ void test22(void)
   File::File a("test22a.txt", flags(File::MODE_READ | File::MODE_PROTECT));
   File::File b("test22b.txt", flags(File::MODE_READ | File::MODE_PROTECT));
   File::File ModA("test22a.txt", flags(File::MODE_WRITE | File::MODE_CLEAR));
-  // ModA clear's file A
+  // ModA clears file A
 
   char stringA[50] = {0};
   char stringB[50] = {0};
@@ -413,6 +413,34 @@ void test22(void)
   a.Close();
 }
 
+// Test GetPos/SetPos
+void test23(void)
+{
+  File::File f("test23.txt", flags(File::MODE_READ | File::MODE_PROTECT | File::MODE_TEXT));
+
+  char string[100];
+
+  f.GetString(string, 100);
+  printf("First string was: \"%s\"\n", string);
+
+  unsigned secondBegin = f.GetPos();
+
+  f.GetString(string, 100);
+  printf("Second string was: \"%s\"\n", string);
+
+  f.SetPos(secondBegin);
+
+  f.GetString(string, 100);
+  printf("Second string again was: \"%s\"\n", string);
+
+  f.GetString(string, 100);
+  printf("Third string is: \"%s\"\n", string);
+
+  if(!f.EndOfFile())
+    printf("NOT AT END OF FILE!\n");
+
+}
+
 void (*tests[])(void) = {
   test1,
   test2,
@@ -436,6 +464,7 @@ void (*tests[])(void) = {
   test20,
   test21,
   test22,
+  test23,
 };
 
 int main(int argc, char** argv)

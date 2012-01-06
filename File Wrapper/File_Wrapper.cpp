@@ -7,6 +7,11 @@
 #include <exception>
 #include <limits>
 
+// Undefine the seek defines for this file so we can use them.
+#undef SEEK_SET
+#undef SEEK_CUR
+#undef SEEK_END
+
 #define mindef(a,b) (a<b?a:b)
 #define maxdef(a,b) (a>b?a:b)
 
@@ -125,13 +130,9 @@ namespace File
       }
     }
 
-    // Allocate memory for the buffer.
-    fileSize_ = static_cast<unsigned>(size);
-
-    if(mode & MODE_READ)
-      bufferSize_ = static_cast<unsigned>(size); // Read-only. Don't add extra bytes to the buffer.
-    else
-      bufferSize_ = static_cast<unsigned>((size + 1) * Utils::GrowthSize); // Read-write. Multiply by 1.5 to get the buffer size.
+    // Allocate memory for the buffer. Always allocate extra in case newline
+    // endings get translated to be longer than original.
+    bufferSize_ = static_cast<unsigned>((size + 1) * 2);
     
     try
     {
@@ -145,8 +146,11 @@ namespace File
     }
 
     // Move the pointer back to start and read the file into the buffer.
+    // Set fileSize_ here, since if there's newlines that get translated,
+    // ftell doesn't change to reflect that. fread will give an accurate file
+    // size.
     std::rewind(file);
-    std::fread(file_, sizeof(char), fileSize_, file);
+    fileSize_ = std::fread(file_, sizeof(char), bufferSize_, file);
 
     // Close the file
     std::fclose(file);
@@ -427,5 +431,44 @@ namespace File
     Open(filename, MODE_SAME);
 
     delete [] filename;
+  }
+
+  void File::SetPos(unsigned position)
+  {
+    if(position > fileSize_)
+      throw File_Exception(E_INVALIDPOSITION);
+
+    currentPos_ = position;
+  }
+
+  void File::Seek(int offset, Seek_Origin origin)
+  {
+    unsigned start;
+    
+    switch (origin)
+    {
+    case SEEK_BEGIN:
+      start = 0;
+      break;
+
+    case SEEK_CURRENTPOS:
+      start = currentPos_;
+      break;
+
+    case SEEK_END:
+      start = fileSize_;
+      break;
+
+    default:
+      throw File_Exception(E_INVALIDPOSITION);
+    }
+
+    start += offset;
+
+    // Make sure we're still inside the file.
+    if(start > fileSize_)
+      throw File_Exception(E_INVALIDPOSITION);
+
+    currentPos_ = start;
   }
 }

@@ -16,6 +16,7 @@ namespace File
     E_FILETOOLARGE,
     E_BADFLAGS,
     E_PROTECTED,
+    E_INVALIDPOSITION,
   };
 
   static const char* ErrorStrings[] = {
@@ -25,7 +26,8 @@ namespace File
     "Out of system memory.",                 // E_OUTOFMEMORY
     "File is larger than int max.",          // E_FILETOOLARGE
     "Inappropriate flags specified.",        // E_BADFLAGS
-    "Attempt to write into protected file."  // E_PROTECTED
+    "Attempt to write into protected file.", // E_PROTECTED
+    "Invalid position specified.",           // E_INVALIDPOSITION
   };
 }
 
