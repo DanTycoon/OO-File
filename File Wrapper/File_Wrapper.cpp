@@ -411,7 +411,7 @@ namespace File
     }
   }
 
-  unsigned File::Read(char* output, unsigned maxLength)
+  unsigned File::Read(void* output, unsigned maxLength)
   {
     // Make sure we don't go over the end of the file
     if(currentPos_ + maxLength > fileSize_)
@@ -475,16 +475,19 @@ namespace File
     currentPos_ = start;
   }
 
-  void File::Write(const char* data, unsigned numBytes, bool ignoreErrors)
+  void File::Write(const void* data, unsigned numBytes, bool ignoreErrors)
   {
     // There already exists a function that writes data to the file buffer.
+    // All we need to do is convert it to a character array.
+    const char* byteArray = reinterpret_cast<const char*>(data);
+
     for(unsigned i = 0; i < numBytes; ++i)
     {
-      PutChar(data[i], ignoreErrors);
+      PutChar(byteArray[i], ignoreErrors);
     }
   }
 
-  void File::Write(const char* data, unsigned objectSize, unsigned numObjects, bool ignoreErrors)
+  void File::Write(const void* data, unsigned objectSize, unsigned numObjects, bool ignoreErrors)
   {
     // Do the math and call the other Write function.
     Write(data, objectSize * numObjects, ignoreErrors);

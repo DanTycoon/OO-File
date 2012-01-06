@@ -205,7 +205,7 @@ namespace File
      *
      * Returns: The number of bytes read.
      */
-    unsigned Read(char* output, unsigned maxLength) throw();
+    unsigned Read(void* output, unsigned maxLength) throw();
 
     /* Re-opens the file. Does not write out the buffer before closing.
      * If you want the file to be written out, call "SaveFile"
@@ -250,8 +250,8 @@ namespace File
      * Throws: E_OUTOFMEMORY - new had an error allocating extra memory.
      *         E_PROTECTED   - Attempt to write to protected file area.
      */
-    void Write(const char* data, unsigned numBytes, bool ignoreErrors = false) throw(File_Exception);
-    void Write(const char* data, unsigned objectSize, unsigned numObjects, bool ignoreErrors = false) throw(File_Exception);
+    void Write(const void* data, unsigned numBytes, bool ignoreErrors = false) throw(File_Exception);
+    void Write(const void* data, unsigned objectSize, unsigned numObjects, bool ignoreErrors = false) throw(File_Exception);
   private:
     File();
 

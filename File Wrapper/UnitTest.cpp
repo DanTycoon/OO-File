@@ -35,7 +35,7 @@ void test3(void)
   }
   catch( File::File_Exception e )
   {
-    printf("Caught expected exception.\n%s", e.what());
+    printf("Caught expected exception.\n%s\n", e.what());
   }
 }
 
@@ -251,7 +251,7 @@ void test15(void)
   }
   catch ( File::File_Exception e )
   {
-    printf("Caught expected exception.\n%s", e.what());
+    printf("Caught expected exception.\n%s\n", e.what());
   }
 }
 
@@ -301,6 +301,7 @@ void test18(void)
   unsigned bytesRead = f.Read(string, 5);
 
   printf("String was: \"%s\" (%d bytes)\n", string, bytesRead);
+  // "This " No Null. 5 Bytes
 }
 
 // Test Read with too many bytes
@@ -312,6 +313,7 @@ void test19(void)
   unsigned bytesRead = f.Read(string, 100);
 
   printf("String was: \"%s\" (%d bytes)\n", string, bytesRead);
+  // 38 Bytes
 }
 
 // Test Read with JUST enough bytes.
@@ -383,9 +385,9 @@ void test21(void)
 // Test Reopen
 void test22(void)
 {
-  File::File a("test22a.txt", flags(File::MODE_READ | File::MODE_PROTECT));
-  File::File b("test22b.txt", flags(File::MODE_READ | File::MODE_PROTECT));
-  File::File ModA("test22a.txt", flags(File::MODE_WRITE | File::MODE_CLEAR));
+  File::File a("test22a.txt", flags(File::MODE_READ | File::MODE_PROTECT | File::MODE_TEXT));
+  File::File b("test22b.txt", flags(File::MODE_READ | File::MODE_PROTECT | File::MODE_TEXT));
+  File::File ModA("test22a.txt", flags(File::MODE_WRITE | File::MODE_CLEAR | File::MODE_TEXT));
   // ModA clears file A
 
   char stringA[50] = {0};
@@ -456,10 +458,14 @@ void test24(void)
 // Test Write overload
 void test25(void)
 {
-  File::File f("test25.txt", flags(File::MODE_WRITE | File::MODE_TEXT | File::MODE_CLEAR | File::MODE_CREATE));
+  File::File f("test25.txt", flags(File::MODE_WRITE | File::MODE_BINARY | File::MODE_CLEAR | File::MODE_CREATE));
 
-  const char arr[] = { 'a', 'b', 'c' };
+  const int arr[] = { 1, 2, 0x6C6C6548, 0x00002E6F };
   f.Write(&arr[0], sizeof(*arr), sizeof(arr) / sizeof(*arr), false);
+
+  // Result:
+  // 01 00 00 00  02 00 00 00  48 65 6c 6c 6f 2e 00 00   ........Hello...
+  //                                                    Actual Period ^
 }
 
 void (*tests[])(void) = {
@@ -498,8 +504,8 @@ int main(int argc, char** argv)
       int which = std::atoi(argv[1]);
 
       // If the number given is greater than the number of tests we have, run all of them.
-      if(which < sizeof(tests) / sizeof(*tests))
-        tests[which]();
+      if(which <= sizeof(tests) / sizeof(*tests))
+        tests[which-1]();
       else
       {
         for(unsigned i = 0; i < sizeof(tests) / sizeof(*tests); ++i)
